@@ -1,0 +1,96 @@
+---
+title: "Prueba Titanic"
+author: "Franco"
+date: "11/11/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r titanic, echo=FALSE}
+setwd("~/R for Data Science")
+data.frame = read.csv('titanic_train.csv', na.strings = '')
+```
+
+## Titanic Predictions
+
+Counting missing values:
+
+```{r echo=FALSE, message=FALSE}
+library(Amelia)
+```
+
+```{r echo=FALSE}
+sum(is.na(data.frame))
+```
+
+## Including Plots
+
+* Missing values:
+
+```{r echo=FALSE}
+missmap(data.frame, col=c('black', 'grey'))
+```
+
+* Correlation plot:
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(GGally)
+
+ggcorr(data.frame, nbreaks = 6,
+       label = TRUE, label_size = 3, color = 'grey50')
+```
+
+
+* Survival by Sex:
+
+```{r echo=FALSE, message=FALSE}
+library(ggplot2)
+ggplot(data.frame, aes(x = Survived, fill=Sex)) +
+  geom_bar(position = position_dodge()) +
+  geom_text(stat='count', 
+            aes(label=stat(count)), 
+            position = position_dodge(width=1), vjust=-0.5)+
+  theme_classic()
+```
+
+## Predictions by Random Forest
+
+```{r echo=FALSE, message=FALSE}
+# Create train and test data
+
+train_test_split = function(data, fraction = 0.8, train = TRUE) {
+  total_rows = nrow(data)
+  train_rows = fraction * total_rows
+  sample = 1:train_rows
+  if (train == TRUE) {
+    return (data[sample, ])
+  } else {
+    return (data[-sample, ])
+  }
+}
+
+#Then use the function to create the train and test sets as follows:
+train <- train_test_split(data.frame, 0.8, train = TRUE)
+test <- train_test_split(data.frame, 0.8, train = FALSE)
+
+library(rpart)
+library(rpart.plot)
+fit <- rpart(Survived~., data = train, method = 'class')
+
+predicted = predict(fit, test, type = 'class')
+
+table_mat = table(test$Survived, predicted)
+print(table_mat)
+dt_accuracy = sum(diag(table_mat)) / sum(table_mat)
+paste("The accuracy is : ", dt_accuracy)
+
+```
+
+
