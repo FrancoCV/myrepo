@@ -2,7 +2,9 @@
 title: "Prueba"
 author: "Franco"
 date: "15/11/2021"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
 ```{r setup, include=FALSE}
